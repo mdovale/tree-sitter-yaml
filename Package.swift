@@ -1,41 +1,68 @@
-// swift-tools-version:5.3
+// swift-tools-version: 5.9
 
-import Foundation
 import PackageDescription
 
-var sources = ["src/parser.c"]
-if FileManager.default.fileExists(atPath: "src/scanner.c") {
-    sources.append("src/scanner.c")
-}
-
 let package = Package(
-    name: "TreeSitterYAML",
+    name: "TreeSitterYaml",
     products: [
-        .library(name: "TreeSitterYAML", targets: ["TreeSitterYAML"]),
+        .library(name: "TreeSitterYaml", targets: ["TreeSitterYaml"]),
     ],
     dependencies: [
-        .package(name: "SwiftTreeSitter", url: "https://github.com/tree-sitter/swift-tree-sitter", from: "0.9.0"),
+        // swift-tree-sitter main uses tree-sitter 0.25+ (matches grammar generated with tree-sitter 0.25.x).
+        .package(url: "https://github.com/tree-sitter/swift-tree-sitter", branch: "main"),
     ],
     targets: [
         .target(
-            name: "TreeSitterYAML",
+            name: "TreeSitterYaml",
             dependencies: [],
             path: ".",
-            sources: sources,
+            exclude: [
+                "binding.gyp",
+                "bindings/c",
+                "bindings/go",
+                "bindings/node",
+                "bindings/python",
+                "bindings/rust",
+                "Cargo.toml",
+                "Cargo.lock",
+                "CMakeLists.txt",
+                "eslint.config.mjs",
+                "go.mod",
+                "go.sum",
+                "grammar.js",
+                "LICENSE",
+                "Makefile",
+                "package-lock.json",
+                "package.json",
+                "pyproject.toml",
+                "README.md",
+                "setup.py",
+                "src/grammar.json",
+                "src/node-types.json",
+                "test",
+                "tree-sitter.json",
+            ],
+            sources: [
+                "src/parser.c",
+                "src/scanner.c",
+            ],
             resources: [
-                .copy("queries")
+                .copy("queries"),
             ],
             publicHeadersPath: "bindings/swift",
-            cSettings: [.headerSearchPath("src")]
+            cSettings: [
+                .headerSearchPath("src"),
+                .define("YAML_SCHEMA", to: "core"),
+            ],
         ),
         .testTarget(
-            name: "TreeSitterYAMLTests",
+            name: "TreeSitterYamlTests",
             dependencies: [
-                "SwiftTreeSitter",
-                "TreeSitterYAML",
+                .product(name: "SwiftTreeSitter", package: "swift-tree-sitter"),
+                "TreeSitterYaml",
             ],
-            path: "bindings/swift/TreeSitterYAMLTests"
-        )
+            path: "bindings/swift/TreeSitterYamlTests",
+        ),
     ],
-    cLanguageStandard: .c11
+    cLanguageStandard: .c11,
 )
